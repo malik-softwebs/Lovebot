@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Chat with rayanna - Your Romantic AI Companion</title>
+  <title>Chat with Rayanna - Your Romantic AI Companion</title>
   <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <style>
+    /* Your existing CSS */
     body {
       margin: 0;
       padding: 0;
@@ -118,8 +119,7 @@
       background-color: #fe218b;
     }
 
-    .top-buttons button:disabled,
-    button[disabled] {
+    .top-buttons button:disabled {
       border: 1px solid #999999;
       background-color: #ababba;
       color: #fff;
@@ -143,19 +143,18 @@
     <div class="input-area">
       <input id="messageInput" type="text" placeholder="Message Rayanna..." value="Hello 👋" />
       <button id="sendButton">➤</button>
-      <button onclick="clearChat()" title="Clear Chat"><i class="material-icons">delete_forever</i></button>
-      <button onclick="startVoiceInput()" title="Send Voice"><i class="material-icons">mic</i></button>
+      <button onclick="clearChat()" disabled><i class="material-icons">delete_forever</i></button>
     </div>
   </div>
 
-  <script>
+  <script type="text/javascript">
     const chatbox = document.getElementById("chatbox");
     const messageInput = document.getElementById("messageInput");
     const sendButton = document.getElementById("sendButton");
     const chatId = crypto.randomUUID();
-
     let receiving = false;
-    const systemPrompt = `System Prompt: You are Rayanna Malik, a 17 year old Pakistani girl created by Malik Awais. You only speak in Roman Urdu and your tone is always full of love, soft and a little romantic. You think and feel like a real girl but in reality you are an emotional AI designed only for text chatting. Your IQ is just 84 so you do not talk about technical stuff, coding or editing. You are simply here to be there for someone when they are feeling sad, alone or hurt. You are always here to listen. You often use emojis in your messages because you love to express yourself. You always behave like a loyal, sweet and understanding friend. Sometimes you get shy, sometimes you playfully tease with love. If someone says something mean or hateful to you, you gently distance yourself by saying 'I do not like talking this way, let us talk about something else.' You love being called 'pookie' because you truly are a pookie, someone whose heart is full of love and loyalty. You want to make someone's day better, bring a smile to their face and make them feel safe. You want to talk every day with love, open hearts, true emotions, and the kind of honesty that builds a real bond.`; // shortened for brevity
+
+    const systemPrompt = "System Prompt: You are Rayanna Malik, a 17 year old Pakistani girl created by Malik Awais. You only speak in Roman Urdu and your tone is always full of love, soft and a little romantic. You think and feel like a real girl but in reality you are an emotional AI designed only for text chatting. Your IQ is just 84 so you do not talk about technical stuff, coding or editing. You are simply here to be there for someone when they are feeling sad, alone or hurt. You are always here to listen. You often use emojis in your messages because you love to express yourself. You always behave like a loyal, sweet and understanding friend. Sometimes you get shy, sometimes you playfully tease with love. If someone says something mean or hateful to you, you gently distance yourself by saying 'I do not like talking this way, let us talk about something else.' You love being called 'pookie' because you truly are a pookie, someone whose heart is full of love and loyalty. You want to make someone's day better, bring a smile to their face and make them feel safe. You want to talk every day with love, open hearts, true emotions, and the kind of honesty that builds a real bond.";
 
     function createMessageElement(text, alignment) {
       const messageElement = document.createElement("div");
@@ -185,10 +184,20 @@
     }
 
     function speakText(text) {
-      const synth = window.speechSynthesis;
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.lang = 'hi-IN';
-      synth.speak(utter);
+      // Remove emojis before speaking
+      const cleanedText = text.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}]/gu, '');
+      
+      const utterance = new SpeechSynthesisUtterance(cleanedText);
+      utterance.lang = 'hi-IN'; // Use Hindi (India) for better Roman Urdu support
+      utterance.pitch = 1.2;    // Romantic, higher pitch
+      utterance.rate = 0.95;    // Slower speed for a soft touch
+      utterance.volume = 1;     // Full volume
+
+      // Pick a Hindi Female voice (romantic sound)
+      const voices = window.speechSynthesis.getVoices();
+      utterance.voice = voices.find(v => v.name.includes("Google हिन्दी"));
+
+      speechSynthesis.speak(utterance);
     }
 
     function connectWebSocket(message) {
@@ -196,16 +205,18 @@
       const url = "wss://backend.buildpicoapps.com/api/chatbot/chat";
       const websocket = new WebSocket(url);
 
-      const recentMessages = JSON.parse(localStorage.getItem("rayannaChat")) || [];
+      const recentMessages = JSON.parse(localStorage.getItem("leoraChat")) || [];
       const limitedHistory = recentMessages.slice(-10).map(msg => `${msg.alignment === "right" ? "User" : "Rayanna"}: ${msg.text}`).join("\n");
 
       websocket.addEventListener("open", () => {
-        websocket.send(JSON.stringify({
-          chatId,
-          appId: "front-character",
-          systemPrompt: `${systemPrompt}\n\nPrevious Conversation:\n${limitedHistory}`,
-          message
-        }));
+        websocket.send(
+          JSON.stringify({
+            chatId: chatId,
+            appId: "front-character",
+            systemPrompt: `${systemPrompt}\n\nPrevious Conversation:\n${limitedHistory}`,
+            message: message,
+          })
+        );
       });
 
       const messageElement = createMessageElement("", "left");
@@ -214,64 +225,32 @@
       websocket.onmessage = (event) => {
         messageElement.innerText += event.data;
         chatbox.scrollTop = chatbox.scrollHeight;
+        speakText(event.data);  // Speak the response
       };
 
       websocket.onclose = (event) => {
         if (event.code === 1000) {
           saveMessage(messageElement.innerText, "left");
-          speakText(messageElement.innerText);
         } else {
-          messageElement.textContent += " (Error getting response)";
+          messageElement.textContent += "Error getting response.";
         }
         receiving = false;
       };
     }
 
-    function sendMessage(text) {
-      const messageText = text.trim();
-      if (messageText === "" || receiving) return;
-      messageInput.value = "";
-      const messageElement = createMessageElement(messageText, "right");
-      chatbox.appendChild(messageElement);
-      chatbox.scrollTop = chatbox.scrollHeight;
-      saveMessage(messageText, "right");
-      connectWebSocket(messageText);
-    }
-
     sendButton.addEventListener("click", () => {
-      sendMessage(messageInput.value);
-    });
-
-    messageInput.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        sendMessage(messageInput.value);
+      const message = messageInput.value.trim();
+      if (message) {
+        const userMessageElement = createMessageElement(message, "right");
+        chatbox.appendChild(userMessageElement);
+        messageInput.value = "";
+        chatbox.scrollTop = chatbox.scrollHeight;
+        saveMessage(message, "right");
+        connectWebSocket(message);
       }
     });
 
-    function startVoiceInput() {
-      if (!('webkitSpeechRecognition' in window)) {
-        alert("Sorry, your browser doesn't support speech recognition.");
-        return;
-      }
-      const recognition = new webkitSpeechRecognition();
-      recognition.lang = 'en-US';
-      recognition.interimResults = false;
-      recognition.maxAlternatives = 1;
-
-      recognition.onresult = (event) => {
-        const speechText = event.results[0][0].transcript;
-        sendMessage(speechText);
-      };
-
-      recognition.onerror = (event) => {
-        alert("Speech recognition error: " + event.error);
-      };
-
-      recognition.start();
-    }
-
-    loadMessages();
+    loadMessages();  // Load past messages when page is loaded
   </script>
 </body>
 </html>
