@@ -7,7 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <style>
-    /* Your existing CSS */
+    /* Basic styling */
     body {
       margin: 0;
       padding: 0;
@@ -134,6 +134,23 @@
         font-size: 1.5rem;
       }
     }
+
+    /* Mic Button Style */
+    .mic-btn {
+      font-size: 1.5rem;
+      color: #21b0fe;
+      cursor: pointer;
+      padding: 12px;
+      border-radius: 50%;
+      background-color: #fff;
+      border: 2px solid #21b0fe;
+      transition: all 0.3s ease;
+    }
+
+    .mic-btn:hover {
+      background-color: #21b0fe;
+      color: #fff;
+    }
   </style>
 </head>
 <body>
@@ -144,6 +161,10 @@
       <input id="messageInput" type="text" placeholder="Message Rayanna..." value="Hello 👋" />
       <button id="sendButton">➤</button>
       <button onclick="clearChat()" disabled><i class="material-icons">delete_forever</i></button>
+      <!-- Mic Button -->
+      <button class="mic-btn" id="micButton">
+        🎙️
+      </button>
     </div>
   </div>
 
@@ -151,6 +172,7 @@
     const chatbox = document.getElementById("chatbox");
     const messageInput = document.getElementById("messageInput");
     const sendButton = document.getElementById("sendButton");
+    const micButton = document.getElementById("micButton");
     const chatId = crypto.randomUUID();
     let receiving = false;
 
@@ -250,7 +272,45 @@
       }
     });
 
-    loadMessages();  // Load past messages when page is loaded
+    micButton.addEventListener("click", () => {
+      if (receiving) return; // Prevent starting new speech recognition while already processing
+      startSpeechRecognition();
+    });
+
+    function startSpeechRecognition() {
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = "hi-IN"; // Hindi Language
+      recognition.interimResults = false;
+
+      recognition.onstart = () => {
+        micButton.innerHTML = "🎤 Listening...";
+        micButton.disabled = true; // Disable mic button during listening
+      };
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript.trim();
+        if (transcript) {
+          messageInput.value = transcript;
+          sendButton.click();
+        }
+      };
+
+      recognition.onend = () => {
+        micButton.innerHTML = "🎙️";
+        micButton.disabled = false; // Re-enable mic button after listening
+      };
+
+      recognition.onerror = (event) => {
+        console.error("Speech recognition error: ", event.error);
+        micButton.innerHTML = "🎙️";
+        micButton.disabled = false;
+      };
+
+      recognition.start();
+    }
+
+    // Load previous messages when the page is loaded
+    window.onload = loadMessages;
   </script>
 </body>
 </html>
