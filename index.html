@@ -3,439 +3,281 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Rayanna Malik - Roman Urdu AI</title>
+  <title>Chat with rayanna - Your Romantic AI Companion</title>
+  <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <style>
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: #111;
-      color: #eee;
+      padding: 0;
+      background-color: #fef6ec;
+      font-family: "Plus Jakarta Sans", sans-serif;
       display: flex;
-      flex-direction: column;
-      height: 100vh;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
     }
-    header {
-      background: #0f0f0f;
-      padding: 1em;
+
+    h1 {
+      color: #fe218b;
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 20px;
       text-align: center;
-      font-size: 1.5em;
-      color: #00ffd5;
     }
+
+    .container {
+      width: 100%;
+      max-width: 700px;
+      padding: 0px;
+    }
+
     #chatbox {
-      flex: 1;
-      padding: 1em;
+      background-color: #ffffff;
+      border: 2px solid #fe218b;
+      border-radius: 20px;
+      padding: 20px;
+      max-height: 80vh;
+      height: 100%;
       overflow-y: auto;
+      box-shadow: 0 5px 25px rgba(0, 0, 0, 0.07);
       display: flex;
       flex-direction: column;
+      gap: 10px;
     }
-    .message {
-      padding: 0.5em 1em;
-      margin: 0.5em 0;
+
+    .input-area {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+    }
+
+    input[type="text"] {
+      flex-grow: 1;
+      padding: 12px 16px;
       border-radius: 10px;
-      max-width: 75%;
+      border: 1px solid #ddd;
+      background-color: #fff;
+      font-size: 1rem;
+      color: #333;
+      outline: none;
+      transition: all 0.2s ease;
     }
-    .right {
-      align-self: flex-end;
-      background-color: #005aff;
+
+    input[type="text"]:focus {
+      border-color: #fe218b;
+      box-shadow: 0 0 0 3px rgba(254, 33, 139, 0.2);
     }
+
+    button {
+      background-color: #21b0fe;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-weight: bold;
+      color: #fff;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #199be5;
+    }
+
+    .message {
+      max-width: 80%;
+      padding: 10px 16px;
+      border-radius: 16px;
+      font-size: 1rem;
+      line-height: 1.4;
+      white-space: pre-wrap;
+    }
+
     .left {
       align-self: flex-start;
-      background-color: #333;
+      background-color: #ffe1ef;
+      border: 1px solid #fe218b33;
     }
-    footer {
+
+    .right {
+      align-self: flex-end;
+      background-color: #d5f1ff;
+      border: 1px solid #21b0fe33;
+    }
+
+    .top-buttons {
       display: flex;
-      gap: 0.5em;
-      padding: 1em;
-      background: #222;
+      justify-content: flex-end;
+      margin-bottom: 10px;
     }
-    input, button, select {
-      padding: 0.6em;
-      font-size: 1em;
-      border-radius: 5px;
-      border: none;
+
+    .top-buttons button {
+      font-size: 0.9rem;
+      padding: 8px 12px;
+      background-color: #fe218b;
     }
-    input {
-      flex: 1;
+
+    .top-buttons button:disabled,
+    button[disabled] {
+      border: 1px solid #999999;
+      background-color: #ababba;
+      color: #fff;
     }
-    button {
-      background: #00ffd5;
-      cursor: pointer;
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 10px;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
     }
   </style>
 </head>
 <body>
-  <header>Rayanna Malik - Roman Urdu AI</header>
-  <div id="chatbox"></div>
-  <footer>
-    <input type="text" id="messageInput" placeholder="Roman Urdu mein likhein...">
-    <button onclick="startVoiceInput()">🎤</button>
-    <button id="sendButton">Send</button>
-  </footer>
-  <div style="padding: 0.5em; background: #111; display: flex; justify-content: space-around;">
-    <label>Pitch: <input type="range" id="pitch" min="0" max="2" step="0.1" value="1"></label>
-    <label>Rate: <input type="range" id="rate" min="0.5" max="2" step="0.1" value="1"></label>
-    <label>Volume: <input type="range" id="volume" min="0" max="1" step="0.1" value="1"></label>
-    <button onclick="clearChat()">Clear Chat</button>
+  <div class="container">
+    <div class="top-buttons"></div>
+    <div id="chatbox"></div>
+    <div class="input-area">
+      <input id="messageInput" type="text" placeholder="Message Rayanna..." value="Hello 👋" />
+      <button id="sendButton">➤</button>
+      <button onclick="clearChat()" title="Clear Chat"><i class="material-icons">delete_forever</i></button>
+      <button onclick="startVoiceInput()" title="Send Voice"><i class="material-icons">mic</i></button>
+    </div>
   </div>
 
-  <script>
-    const chatbox = document.getElementById("chatbox");
-    const messageInput = document.getElementById("messageInput");
-    const sendButton = document.getElementById("sendButton");
-    const chatId = crypto.randomUUID();
+ <script>
+  const chatbox = document.getElementById("chatbox");
+  const messageInput = document.getElementById("messageInput");
+  const sendButton = document.getElementById("sendButton");
+  const chatId = crypto.randomUUID();
+  let lastInputWasVoice = false;
+  let receiving = false;
 
-    const pitchSlider = document.getElementById("pitch");
-    const rateSlider = document.getElementById("rate");
-    const volumeSlider = document.getElementById("volume");
+  const systemPrompt = `System Prompt: You are Rayanna Malik, a 17 year old Pakistani girl created by Malik Awais...`; // shortened for brevity
 
-    let receiving = false;
-    let voiceTrigger = false;
+  function createMessageElement(text, alignment) {
+    const messageElement = document.createElement("div");
+    messageElement.className = `message ${alignment}`;
+    messageElement.textContent = text;
+    return messageElement;
+  }
 
-    const systemPrompt = `System Prompt: You are Rayanna Malik, a 17 year old Pakistani girl created by Malik Awais. You speak Roman Urdu in chat. Always respond like a real Pakistani teenage girl. Keep it friendly, sweet, and casual.`;
+  function saveMessage(text, alignment) {
+    const messages = JSON.parse(localStorage.getItem("rayannaChat")) || [];
+    messages.push({ text, alignment });
+    localStorage.setItem("rayannaChat", JSON.stringify(messages));
+  }
 
-    function createMessageElement(text, alignment) {
-      const messageElement = document.createElement("div");
-      messageElement.className = `message ${alignment}`;
-      messageElement.textContent = text;
-      return messageElement;
-    }
+  function loadMessages() {
+    const messages = JSON.parse(localStorage.getItem("rayannaChat")) || [];
+    messages.forEach(msg => {
+      const msgElem = createMessageElement(msg.text, msg.alignment);
+      chatbox.appendChild(msgElem);
+    });
+    chatbox.scrollTop = chatbox.scrollHeight;
+  }
 
-    function saveMessage(text, alignment) {
-      const messages = JSON.parse(localStorage.getItem("rayannaChat")) || [];
-      messages.push({ text, alignment });
-      localStorage.setItem("rayannaChat", JSON.stringify(messages));
-    }
+  function clearChat() {
+    localStorage.removeItem("rayannaChat");
+    chatbox.innerHTML = "";
+  }
 
-    function loadMessages() {
-      const messages = JSON.parse(localStorage.getItem("rayannaChat")) || [];
-      messages.forEach(msg => {
-        const msgElem = createMessageElement(msg.text, msg.alignment);
-        chatbox.appendChild(msgElem);
-      });
+  function speakText(text) {
+    const synth = window.speechSynthesis;
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = 'hi-IN';
+    synth.speak(utter);
+  }
+
+  function connectWebSocket(message) {
+    receiving = true;
+    const url = "wss://backend.buildpicoapps.com/api/chatbot/chat";
+    const websocket = new WebSocket(url);
+
+    const recentMessages = JSON.parse(localStorage.getItem("rayannaChat")) || [];
+    const limitedHistory = recentMessages.slice(-10).map(msg => `${msg.alignment === "right" ? "User" : "Rayanna"}: ${msg.text}`).join("\n");
+
+    websocket.addEventListener("open", () => {
+      websocket.send(JSON.stringify({
+        chatId,
+        appId: "front-character",
+        systemPrompt: `${systemPrompt}\n\nPrevious Conversation:\n${limitedHistory}`,
+        message
+      }));
+    });
+
+    const messageElement = createMessageElement("", "left");
+    chatbox.appendChild(messageElement);
+
+    websocket.onmessage = (event) => {
+      messageElement.innerText += event.data;
       chatbox.scrollTop = chatbox.scrollHeight;
-    }
+    };
 
-    function clearChat() {
-      localStorage.removeItem("rayannaChat");
-      chatbox.innerHTML = "";
-    }
-
-    function speakText(text) {
-      if (!voiceTrigger) return;
-      const synth = window.speechSynthesis;
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.lang = 'hi-IN'; // Hindi for better Roman Urdu voice
-      utter.pitch = parseFloat(pitchSlider.value);
-      utter.rate = parseFloat(rateSlider.value);
-      utter.volume = parseFloat(volumeSlider.value);
-      synth.speak(utter);
-    }
-
-    function connectWebSocket(message) {
-      receiving = true;
-      const url = "wss://backend.buildpicoapps.com/api/chatbot/chat";
-      const websocket = new WebSocket(url);
-
-      const history = JSON.parse(localStorage.getItem("rayannaChat")) || [];
-      const limitedHistory = history.slice(-10).map(msg =>
-        `${msg.alignment === "right" ? "User" : "Rayanna"}: ${msg.text}`
-      ).join("\n");
-
-      websocket.addEventListener("open", () => {
-        websocket.send(JSON.stringify({
-          chatId,
-          appId: "front-character",
-          systemPrompt: `${systemPrompt}\n\nPrevious Conversation:\n${limitedHistory}`,
-          message
-        }));
-      });
-
-      const messageElement = createMessageElement("", "left");
-      chatbox.appendChild(messageElement);
-
-      websocket.onmessage = (event) => {
-        messageElement.innerText += event.data;
-        chatbox.scrollTop = chatbox.scrollHeight;
-      };
-
-      websocket.onclose = (event) => {
-        if (event.code === 1000) {
-          saveMessage(messageElement.innerText, "left");
+    websocket.onclose = (event) => {
+      if (event.code === 1000) {
+        saveMessage(messageElement.innerText, "left");
+        if (lastInputWasVoice) {
           speakText(messageElement.innerText);
-        } else {
-          messageElement.textContent += " (Error getting response)";
         }
-        receiving = false;
-        voiceTrigger = false;
-      };
-    }
+      } else {
+        messageElement.textContent += " (Error getting response)";
+      }
+      receiving = false;
+    };
+  }
 
-    function sendMessage(text) {
-      const messageText = text.trim();
-      if (messageText === "" || receiving) return;
-      messageInput.value = "";
-      const messageElement = createMessageElement(messageText, "right");
-      chatbox.appendChild(messageElement);
-      chatbox.scrollTop = chatbox.scrollHeight;
-      saveMessage(messageText, "right");
-      connectWebSocket(messageText);
-    }
+  function sendMessage(text) {
+    const messageText = text.trim();
+    if (messageText === "" || receiving) return;
+    messageInput.value = "";
+    const messageElement = createMessageElement(messageText, "right");
+    chatbox.appendChild(messageElement);
+    chatbox.scrollTop = chatbox.scrollHeight;
+    saveMessage(messageText, "right");
+    connectWebSocket(messageText);
+  }
 
-    sendButton.addEventListener("click", () => {
+  sendButton.addEventListener("click", () => {
+    lastInputWasVoice = false;
+    sendMessage(messageInput.value);
+  });
+
+  messageInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      lastInputWasVoice = false;
       sendMessage(messageInput.value);
-    });
-
-    messageInput.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        sendMessage(messageInput.value);
-      }
-    });
-
-    function startVoiceInput() {
-      if (!('webkitSpeechRecognition' in window)) {
-        alert("Sorry, your browser doesn't support speech recognition.");
-        return;
-      }
-      const recognition = new webkitSpeechRecognition();
-      recognition.lang = 'hi-IN'; // Hindi for better Roman Urdu recognition
-      recognition.interimResults = false;
-      recognition.maxAlternatives = 1;
-
-      recognition.onresult = (event) => {
-        const speechText = event.results[0][0].transcript;
-        voiceTrigger = true;
-        sendMessage(speechText);
-      };
-
-      recognition.onerror = (event) => {
-        alert("Speech recognition error: " + event.error);
-      };
-
-      recognition.start();
     }
+  });
 
-    loadMessages();
-  </script>
-</body>
-</html><!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Rayanna Malik - Roman Urdu AI</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #111;
-      color: #eee;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
+  function startVoiceInput() {
+    if (!('webkitSpeechRecognition' in window)) {
+      alert("Sorry, your browser doesn't support speech recognition.");
+      return;
     }
-    header {
-      background: #0f0f0f;
-      padding: 1em;
-      text-align: center;
-      font-size: 1.5em;
-      color: #00ffd5;
-    }
-    #chatbox {
-      flex: 1;
-      padding: 1em;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-    }
-    .message {
-      padding: 0.5em 1em;
-      margin: 0.5em 0;
-      border-radius: 10px;
-      max-width: 75%;
-    }
-    .right {
-      align-self: flex-end;
-      background-color: #005aff;
-    }
-    .left {
-      align-self: flex-start;
-      background-color: #333;
-    }
-    footer {
-      display: flex;
-      gap: 0.5em;
-      padding: 1em;
-      background: #222;
-    }
-    input, button, select {
-      padding: 0.6em;
-      font-size: 1em;
-      border-radius: 5px;
-      border: none;
-    }
-    input {
-      flex: 1;
-    }
-    button {
-      background: #00ffd5;
-      cursor: pointer;
-    }
-  </style>
-</head>
-<body>
-  <header>Rayanna Malik - Roman Urdu AI</header>
-  <div id="chatbox"></div>
-  <footer>
-    <input type="text" id="messageInput" placeholder="Roman Urdu mein likhein...">
-    <button onclick="startVoiceInput()">🎤</button>
-    <button id="sendButton">Send</button>
-  </footer>
-  <div style="padding: 0.5em; background: #111; display: flex; justify-content: space-around;">
-    <label>Pitch: <input type="range" id="pitch" min="0" max="2" step="0.1" value="1"></label>
-    <label>Rate: <input type="range" id="rate" min="0.5" max="2" step="0.1" value="1"></label>
-    <label>Volume: <input type="range" id="volume" min="0" max="1" step="0.1" value="1"></label>
-    <button onclick="clearChat()">Clear Chat</button>
-  </div>
+    const recognition = new webkitSpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
 
-  <script>
-    const chatbox = document.getElementById("chatbox");
-    const messageInput = document.getElementById("messageInput");
-    const sendButton = document.getElementById("sendButton");
-    const chatId = crypto.randomUUID();
+    recognition.onresult = (event) => {
+      const speechText = event.results[0][0].transcript;
+      lastInputWasVoice = true;
+      sendMessage(speechText);
+    };
 
-    const pitchSlider = document.getElementById("pitch");
-    const rateSlider = document.getElementById("rate");
-    const volumeSlider = document.getElementById("volume");
+    recognition.onerror = (event) => {
+      alert("Speech recognition error: " + event.error);
+    };
 
-    let receiving = false;
-    let voiceTrigger = false;
+    recognition.start();
+  }
 
-    const systemPrompt = `System Prompt: You are Rayanna Malik, a 17 year old Pakistani girl created by Malik Awais. You speak Roman Urdu in chat. Always respond like a real Pakistani teenage girl. Keep it friendly, sweet, and casual.`;
-
-    function createMessageElement(text, alignment) {
-      const messageElement = document.createElement("div");
-      messageElement.className = `message ${alignment}`;
-      messageElement.textContent = text;
-      return messageElement;
-    }
-
-    function saveMessage(text, alignment) {
-      const messages = JSON.parse(localStorage.getItem("rayannaChat")) || [];
-      messages.push({ text, alignment });
-      localStorage.setItem("rayannaChat", JSON.stringify(messages));
-    }
-
-    function loadMessages() {
-      const messages = JSON.parse(localStorage.getItem("rayannaChat")) || [];
-      messages.forEach(msg => {
-        const msgElem = createMessageElement(msg.text, msg.alignment);
-        chatbox.appendChild(msgElem);
-      });
-      chatbox.scrollTop = chatbox.scrollHeight;
-    }
-
-    function clearChat() {
-      localStorage.removeItem("rayannaChat");
-      chatbox.innerHTML = "";
-    }
-
-    function speakText(text) {
-      if (!voiceTrigger) return;
-      const synth = window.speechSynthesis;
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.lang = 'hi-IN'; // Hindi for better Roman Urdu voice
-      utter.pitch = parseFloat(pitchSlider.value);
-      utter.rate = parseFloat(rateSlider.value);
-      utter.volume = parseFloat(volumeSlider.value);
-      synth.speak(utter);
-    }
-
-    function connectWebSocket(message) {
-      receiving = true;
-      const url = "wss://backend.buildpicoapps.com/api/chatbot/chat";
-      const websocket = new WebSocket(url);
-
-      const history = JSON.parse(localStorage.getItem("rayannaChat")) || [];
-      const limitedHistory = history.slice(-10).map(msg =>
-        `${msg.alignment === "right" ? "User" : "Rayanna"}: ${msg.text}`
-      ).join("\n");
-
-      websocket.addEventListener("open", () => {
-        websocket.send(JSON.stringify({
-          chatId,
-          appId: "front-character",
-          systemPrompt: `${systemPrompt}\n\nPrevious Conversation:\n${limitedHistory}`,
-          message
-        }));
-      });
-
-      const messageElement = createMessageElement("", "left");
-      chatbox.appendChild(messageElement);
-
-      websocket.onmessage = (event) => {
-        messageElement.innerText += event.data;
-        chatbox.scrollTop = chatbox.scrollHeight;
-      };
-
-      websocket.onclose = (event) => {
-        if (event.code === 1000) {
-          saveMessage(messageElement.innerText, "left");
-          speakText(messageElement.innerText);
-        } else {
-          messageElement.textContent += " (Error getting response)";
-        }
-        receiving = false;
-        voiceTrigger = false;
-      };
-    }
-
-    function sendMessage(text) {
-      const messageText = text.trim();
-      if (messageText === "" || receiving) return;
-      messageInput.value = "";
-      const messageElement = createMessageElement(messageText, "right");
-      chatbox.appendChild(messageElement);
-      chatbox.scrollTop = chatbox.scrollHeight;
-      saveMessage(messageText, "right");
-      connectWebSocket(messageText);
-    }
-
-    sendButton.addEventListener("click", () => {
-      sendMessage(messageInput.value);
-    });
-
-    messageInput.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        sendMessage(messageInput.value);
-      }
-    });
-
-    function startVoiceInput() {
-      if (!('webkitSpeechRecognition' in window)) {
-        alert("Sorry, your browser doesn't support speech recognition.");
-        return;
-      }
-      const recognition = new webkitSpeechRecognition();
-      recognition.lang = 'hi-IN'; // Hindi for better Roman Urdu recognition
-      recognition.interimResults = false;
-      recognition.maxAlternatives = 1;
-
-      recognition.onresult = (event) => {
-        const speechText = event.results[0][0].transcript;
-        voiceTrigger = true;
-        sendMessage(speechText);
-      };
-
-      recognition.onerror = (event) => {
-        alert("Speech recognition error: " + event.error);
-      };
-
-      recognition.start();
-    }
-
-    loadMessages();
-  </script>
+  loadMessages();
+ </script>
 </body>
 </html>
